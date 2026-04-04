@@ -1,0 +1,6 @@
+am:
+  hello: "ሰላም"
+  telegram:
+    welcome: "ወደ Sellz Telegram Bot እንኳን በደህና መጡ። ቋንቋዎን ይምረጡ እና ሱቅዎን ማስተዳደር ይጀምሩ።"
+    language_updated: "ቋንቋው ወደ አማርኛ ተቀይሯል።"
+    unknown_command: "ይህን መልእክት አልገባኝም። ከታች ያሉትን የቋንቋ አዝራሮች ይጠቀሙ ወይም /start ይላኩ።"
