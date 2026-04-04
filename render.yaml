@@ -1,0 +1,24 @@
+services:
+  - type: web
+    name: ethio-shopify-backend
+    env: ruby
+    region: oregon
+    buildCommand: |
+      cd backend
+      bundle install
+      bundle exec rake assets:precompile db:migrate
+    startCommand: cd backend && bundle exec puma -C config/puma.rb
+    envVars:
+      - key: RAILS_ENV
+        value: production
+      - key: SECRET_KEY_BASE
+        generateValue: true
+      - key: DATABASE_URL
+        sync: false
+        value: postgresql://postgres:alazar1234%401234@db.xgrdqkhrtuhxqntmvuxy.supabase.co:5432/postgres
+      - key: ALLOWED_ORIGINS
+        value: "*"
+      - key: RAILS_SERVE_STATIC_FILES
+        value: "true"
+      - key: RAILS_LOG_LEVEL
+        value: "info"
