@@ -21,12 +21,7 @@ default: &default
 
 
 development:
-  <<: *default
-  database: backend_development
-  username: <%= ENV.fetch("POSTGRES_USER", "postgres") %>
-  password: <%= ENV["POSTGRES_PASSWORD"] %>
-  host: <%= ENV.fetch("POSTGRES_HOST", "localhost") %>
-  port: <%= ENV.fetch("POSTGRES_PORT", 5432) %>
+  url: <%= ENV.fetch("DATABASE_URL", "postgresql://postgres:alazar1234%401234@db.xgrdqkhrtuhxqntmvuxy.supabase.co:5432/postgres") %>
 
   # The specified database role being used to connect to PostgreSQL.
   # To create additional roles in PostgreSQL see `$ createuser --help`.

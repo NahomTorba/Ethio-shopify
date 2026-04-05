@@ -18,6 +18,9 @@ require "action_cable/engine"
 # you've limited to :test, :development, or :production.
 Bundler.require(*Rails.groups)
 
+# Require the middleware
+require_relative "../lib/authenticate_bot_request"
+
 module Backend
   class Application < Rails::Application
     # Initialize configuration defaults for originally generated Rails version.

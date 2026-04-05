@@ -1,4 +1,7 @@
 Rails.application.routes.draw do
+  # Health check endpoint
+  get "/up", to: proc { [200, { "Content-Type" => "application/json" }, ['{"status":"ok"}']] }
+
   mount_devise_token_auth_for "User",
                              at: "auth",
                              controllers: {
