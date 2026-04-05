@@ -11,10 +11,17 @@
 # It's strongly recommended that you check this file into your version control system.
 
 ActiveRecord::Schema[8.1].define(version: 2026_04_03_090100) do
-  # These are extensions that must be enabled in order to support this database
-  enable_extension "pg_catalog.plpgsql"
+  create_schema "extensions"
 
-  create_table "carts", force: :cascade do |t|
+  # These are extensions that must be enabled in order to support this database
+  enable_extension "extensions.pg_stat_statements"
+  enable_extension "extensions.pgcrypto"
+  enable_extension "extensions.uuid-ossp"
+  enable_extension "graphql.pg_graphql"
+  enable_extension "pg_catalog.plpgsql"
+  enable_extension "vault.supabase_vault"
+
+  create_table "public.carts", force: :cascade do |t|
     t.datetime "created_at", null: false
     t.bigint "shop_id", null: false
     t.string "telegram_user_id"
@@ -22,7 +29,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_04_03_090100) do
     t.index ["shop_id"], name: "index_carts_on_shop_id"
   end
 
-  create_table "categories", force: :cascade do |t|
+  create_table "public.categories", force: :cascade do |t|
     t.datetime "created_at", null: false
     t.string "name"
     t.bigint "shop_id", null: false
@@ -30,7 +37,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_04_03_090100) do
     t.index ["shop_id"], name: "index_categories_on_shop_id"
   end
 
-  create_table "orders", force: :cascade do |t|
+  create_table "public.orders", force: :cascade do |t|
     t.datetime "created_at", null: false
     t.string "payment_reference"
     t.bigint "shop_id", null: false
@@ -41,7 +48,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_04_03_090100) do
     t.index ["shop_id"], name: "index_orders_on_shop_id"
   end
 
-  create_table "products", force: :cascade do |t|
+  create_table "public.products", force: :cascade do |t|
     t.boolean "active", default: true, null: false
     t.bigint "category_id"
     t.datetime "created_at", null: false
@@ -57,7 +64,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_04_03_090100) do
     t.index ["sku"], name: "index_products_on_sku", unique: true
   end
 
-  create_table "shops", force: :cascade do |t|
+  create_table "public.shops", force: :cascade do |t|
     t.boolean "active", default: true, null: false
     t.datetime "created_at", null: false
     t.string "currency", default: "ETB", null: false
@@ -70,7 +77,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_04_03_090100) do
     t.index ["subdomain"], name: "index_shops_on_subdomain", unique: true
   end
 
-  create_table "users", force: :cascade do |t|
+  create_table "public.users", force: :cascade do |t|
     t.boolean "allow_password_change", default: false
     t.datetime "confirmation_sent_at"
     t.string "confirmation_token"
@@ -96,9 +103,10 @@ ActiveRecord::Schema[8.1].define(version: 2026_04_03_090100) do
     t.index ["uid", "provider"], name: "index_users_on_uid_and_provider", unique: true
   end
 
-  add_foreign_key "carts", "shops"
-  add_foreign_key "categories", "shops"
-  add_foreign_key "orders", "shops"
-  add_foreign_key "products", "categories"
-  add_foreign_key "products", "shops"
+  add_foreign_key "public.carts", "public.shops"
+  add_foreign_key "public.categories", "public.shops"
+  add_foreign_key "public.orders", "public.shops"
+  add_foreign_key "public.products", "public.categories"
+  add_foreign_key "public.products", "public.shops"
+
 end
