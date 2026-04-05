@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_04_03_090100) do
+ActiveRecord::Schema[8.1].define(version: 2026_04_05_060000) do
   create_schema "extensions"
 
   # These are extensions that must be enabled in order to support this database
@@ -69,16 +69,25 @@ ActiveRecord::Schema[8.1].define(version: 2026_04_03_090100) do
     t.datetime "created_at", null: false
     t.string "currency", default: "ETB", null: false
     t.text "description"
+    t.string "logo_url"
     t.string "name", null: false
     t.string "slug"
     t.string "subdomain"
+    t.string "telegram_bot_token"
     t.datetime "updated_at", null: false
+    t.bigint "user_id"
+    t.string "username"
+    t.string "web_app_button_url"
+    t.text "welcome_message"
     t.index ["slug"], name: "index_shops_on_slug", unique: true
     t.index ["subdomain"], name: "index_shops_on_subdomain", unique: true
+    t.index ["user_id"], name: "index_shops_on_user_id"
+    t.index ["username"], name: "index_shops_on_username", unique: true
   end
 
   create_table "public.users", force: :cascade do |t|
     t.boolean "allow_password_change", default: false
+    t.string "bot_state", default: "none"
     t.datetime "confirmation_sent_at"
     t.string "confirmation_token"
     t.datetime "confirmed_at"
@@ -92,6 +101,8 @@ ActiveRecord::Schema[8.1].define(version: 2026_04_03_090100) do
     t.datetime "reset_password_sent_at"
     t.string "reset_password_token"
     t.string "telegram_id"
+    t.string "temp_logo_file_id"
+    t.string "temp_shop_name"
     t.json "tokens"
     t.string "uid", default: "", null: false
     t.string "unconfirmed_email"
