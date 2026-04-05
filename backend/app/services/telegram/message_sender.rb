@@ -1,7 +1,8 @@
 module Telegram
   class MessageSender
-    def initialize(telegram_service: TelegramService.new)
-      @telegram_service = telegram_service
+    def initialize(shop: nil, telegram_service: nil)
+      @shop = shop
+      @telegram_service = telegram_service || TelegramService.new(shop: shop)
     end
 
     def call(chat_id:, text:, reply_markup: nil)

@@ -4,14 +4,31 @@ class AuthenticateBotRequest
     %r{\A/bot(/|\z)}
   ].freeze
 
+  EXCLUDED_PATHS = [
+    /setup-shop/,
+    /\/shop\//,
+    /\/shops\/setup/,
+    /\/shops\/\d+\/products/,
+    /\/products\z/
+  ].freeze
+
   def initialize(app)
     @app = app
   end
 
   def call(env)
     request = ActionDispatch::Request.new(env)
-    return @app.call(env) unless protected_request?(request.path)
-
+    path = request.path
+    
+    # Check if excluded
+    is_excluded = EXCLUDED_PATHS.any? { |p| p.match?(path) }
+    return @app.call(env) if is_excluded
+    
+    # Check if protected
+    is_protected = PROTECTED_PATHS.any? { |p| p.match?(path) }
+    return @app.call(env) unless is_protected
+    
+    # Authenticate
     token = bearer_token(request)
     return unauthorized unless token
 
@@ -24,7 +41,8 @@ class AuthenticateBotRequest
     env["jwt.payload"] = payload
 
     @app.call(env)
-  rescue JsonWebToken::DecodeError
+  rescue => e
+    Rails.logger.error "Auth error: #{e.message}"
     unauthorized
   ensure
     Current.reset
@@ -32,28 +50,13 @@ class AuthenticateBotRequest
 
   private
 
-  def protected_request?(path)
-    PROTECTED_PATHS.any? { |matcher| matcher.match?(path) }
-  end
-
   def bearer_token(request)
     header = request.get_header("HTTP_AUTHORIZATION").to_s
     scheme, token = header.split(" ", 2)
-    return token if scheme == "Bearer" && token.present?
-
-    nil
+    token if scheme == "Bearer" && token.present?
   end
 
   def unauthorized
-    body = { error: "Unauthorized" }.to_json
-
-    [
-      401,
-      {
-        "Content-Type" => "application/json",
-        "Content-Length" => body.bytesize.to_s
-      },
-      [body]
-    ]
+    [401, { "Content-Type" => "application/json" }, [{ error: "Unauthorized" }.to_json]]
   end
 end

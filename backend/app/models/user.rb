@@ -10,6 +10,8 @@ class User < ApplicationRecord
 
   validates :telegram_id, uniqueness: true, allow_nil: true
 
+  has_many :shops, dependent: :destroy
+
   def seller_payload
     {
       id: id,

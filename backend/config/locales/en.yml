@@ -2,5 +2,18 @@ en:
   hello: "Hello world"
   telegram:
     welcome: "Welcome to Sellz Telegram Bot. Choose your language and start managing your shop."
+    welcome_with_shop: "Welcome to %{shop_name}! Browse our products and place orders easily through Telegram."
     language_updated: "Language updated to English."
     unknown_command: "I didn't understand that. Use the language buttons below or send /start."
+    keyboard:
+      english: "English"
+      amharic: "አማርኛ"
+      create_shop: "Create Shop"
+      create_new_shop: "Create New Shop"
+      open_shop: "Open Shop"
+    createshop:
+      start: "Let's create your shop! Click the button below to set up your new shop."
+      ask_username: "Perfect! Now please choose a username for your shop bot (e.g., myshop_bot)."
+      username_taken: "Sorry, this username is already taken. Please choose a different username."
+      success: "Your shop has been created! Your shop bot is ready at:"
+      error: "Something went wrong. Please try again."

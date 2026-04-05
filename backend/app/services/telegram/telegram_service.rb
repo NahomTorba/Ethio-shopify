@@ -2,8 +2,12 @@ require 'httparty'
 
 module Telegram
   class TelegramService
-    def initialize
-      @bot_token = ENV.fetch("TELEGRAM_BOT_TOKEN") { raise "TELEGRAM_BOT_TOKEN not set" }
+    def initialize(shop: nil)
+      if shop&.telegram_bot_token
+        @bot_token = shop.telegram_bot_token
+      else
+        @bot_token = ENV.fetch("TELEGRAM_BOT_TOKEN") { raise "TELEGRAM_BOT_TOKEN not set" }
+      end
       Rails.logger.info("TelegramService initialized with token: #{@bot_token[0..10]}...")
     end
 

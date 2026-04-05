@@ -91,6 +91,10 @@ production:
   primary: &primary_production
     <<: *default
     url: <%= ENV["DATABASE_URL"] %>
+    prepared_statements: false
+    pool: <%= ENV.fetch("RAILS_MAX_THREADS") { 5 } %>
+    checkout_timeout: 10
+    wait_timeout: 10
   cache:
     <<: *primary_production
   queue:
