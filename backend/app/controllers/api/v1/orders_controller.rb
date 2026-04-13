@@ -4,7 +4,11 @@ module Api
       before_action :set_order, only: %i[show update]
 
       def index
-        render json: { orders: Order.includes(:shop).order(created_at: :desc) }
+        orders = Order.includes(:shop)
+                      .where(shop: current_shop_scope)
+                      .order(created_at: :desc)
+
+        render json: { orders: orders }
       end
 
       def show
@@ -22,7 +26,7 @@ module Api
       private
 
       def set_order
-        @order = Order.find(params[:id])
+        @order = Order.where(shop: current_shop_scope).find(params[:id])
       end
 
       def order_params

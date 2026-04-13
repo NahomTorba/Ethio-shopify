@@ -90,7 +90,7 @@ module Telegram
     def start_createshop_flow(user:, chat_id:)
       user.update!(bot_state: STATES[:AWAITING_SHOP_NAME])
 
-      setup_url = "#{ENV.fetch('APP_URL', 'https://your-domain.com')}/setup-shop?user_id=#{user.id}"
+      setup_url = FrontendUrlBuilder.setup_shop(user_id: user.id)
 
       message_sender.call(
         chat_id: chat_id,
@@ -138,7 +138,7 @@ module Telegram
         user: user,
         active: true,
         welcome_message: "Hello! Welcome to #{shop_name}! Browse our products and place orders easily.",
-        web_app_button_url: "#{ENV.fetch('APP_URL', 'https://your-domain.com')}/api/v1/shop/#{username}"
+        web_app_button_url: FrontendUrlBuilder.shop(username: username)
       )
 
       message_sender.call(

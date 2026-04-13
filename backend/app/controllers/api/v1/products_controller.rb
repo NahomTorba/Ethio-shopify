@@ -2,19 +2,13 @@ module Api
   module V1
     class ProductsController < BaseController
       before_action :set_product, only: %i[show update destroy]
-      skip_before_action :authenticate_seller!, only: :create
 
-      def create
-        shop = Shop.find_by(id: params[:product][:shop_id])
-        return render json: { error: "Shop not found" }, status: :not_found if shop.nil?
+      def index
+        products = Product.includes(:shop)
+                          .where(shop: current_shop_scope)
+                          .order(created_at: :desc)
 
-        product = Product.new(product_params)
-
-        if product.save
-          render json: { product: product }, status: :created
-        else
-          render json: { errors: product.errors.full_messages }, status: :unprocessable_entity
-        end
+        render json: { products: products }
       end
 
       def show
@@ -22,7 +16,10 @@ module Api
       end
 
       def create
-        product = Product.new(product_params)
+        shop = current_shop_scope.find_by(id: product_params[:shop_id])
+        return render json: { error: "Shop not found" }, status: :not_found if shop.nil?
+
+        product = shop.products.new(product_params.except(:shop_id))
 
         if product.save
           render json: { product: product }, status: :created
@@ -47,7 +44,7 @@ module Api
       private
 
       def set_product
-        @product = Product.find(params[:id])
+        @product = Product.where(shop: current_shop_scope).find(params[:id])
       end
 
       def product_params

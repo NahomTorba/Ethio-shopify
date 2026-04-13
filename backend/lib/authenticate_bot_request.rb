@@ -1,14 +1,16 @@
 class AuthenticateBotRequest
   PROTECTED_PATHS = [
     %r{\A/api/v1/shops\z},
-    %r{\A/api/v1/seller\z}
+    %r{\A/api/v1/shops/},
+    %r{\A/api/v1/seller\z},
+    %r{\A/api/v1/products},
+    %r{\A/api/v1/orders}
   ].freeze
 
   EXCLUDED_PATHS = [
+    %r{\A/api/v1/public/},
     %r{\A/api/v1/shops/setup},
     %r{\A/webhooks/shop_bot},
-    %r{\Alist-products},
-    %r{\A/api/v1/products},
     %r{\A/shop/},
     %r{\A/setup-shop}
   ].freeze

@@ -49,7 +49,7 @@ module Telegram
     end
 
     def send_owner_welcome(chat_id:)
-      web_app_url = "#{ENV.fetch('APP_URL', 'https://your-domain.com')}/shop/#{shop.username}?mode=owner"
+      web_app_url = FrontendUrlBuilder.shop(username: shop.username, mode: "owner")
 
       message_sender.call(
         chat_id: chat_id,
@@ -59,7 +59,7 @@ module Telegram
     end
 
     def send_customer_welcome(chat_id:)
-      web_app_url = "#{ENV.fetch('APP_URL', 'https://your-domain.com')}/shop/#{shop.username}?mode=customer"
+      web_app_url = FrontendUrlBuilder.shop(username: shop.username, mode: "customer")
 
       message_sender.call(
         chat_id: chat_id,
@@ -92,14 +92,14 @@ module Telegram
       telegram_id = message_dig(message, "from", "id")&.to_s
       
       if owner?(telegram_id)
-        web_app_url = "#{ENV.fetch('APP_URL', 'https://your-domain.com')}/shop/#{shop.username}?mode=owner"
+        web_app_url = FrontendUrlBuilder.shop(username: shop.username, mode: "owner")
         message_sender.call(
           chat_id: chat_id,
           text: "Manage your store",
           reply_markup: owner_keyboard(web_app_url: web_app_url)
         )
       else
-        web_app_url = "#{ENV.fetch('APP_URL', 'https://your-domain.com')}/shop/#{shop.username}?mode=customer"
+        web_app_url = FrontendUrlBuilder.shop(username: shop.username, mode: "customer")
         message_sender.call(
           chat_id: chat_id,
           text: "Browse products",
