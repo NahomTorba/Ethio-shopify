@@ -17,3 +17,11 @@ en:
       username_taken: "Sorry, this username is already taken. Please choose a different username."
       success: "Your shop has been created! Your shop bot is ready at:"
       error: "Something went wrong. Please try again."
+  notifications:
+    low_stock_alert: "Warning! %{product_name} is low on stock. Only %{count} left."
+  buttons:
+    restock: "Restock +10"
+  messages:
+    restock_success: "Successfully added 10 units. New total is %{total}."
+  errors:
+    product_not_found: "Product not found or you don't have permission to update it."

@@ -9,10 +9,19 @@ am:
       english: "English"
       amharic: "አማርኛ"
       create_shop: "ሱቅ ፍጠር"
+      create_new_shop: "አዲስ ሱቅ ፍጠር"
       open_shop: "ሱቅ ክፈት"
     createshop:
-      start: "ሱቅዎን እንፈጥር! በመጀመርያ ሱቅዎን ስም ያስገቡ።"
+      start: "ሱቅዎን እንፈጥር! ከታች ያለውን ቁልፍ ተጠቅመው አዲስ ሱቅዎን ያዘጋጁ።"
       ask_username: "በመጨረሻ ለሱቅዎን ቦት ስም ይምረጡ (ለምሳሌ፡ myshop_bot)።"
       username_taken: "ይቅርታ፣ ይህ ስም ተወስዷል። እባክዎን የተለየ ስም ይምረጡ።"
       success: "ሱቅዎ ተፈጥሯል! የሱቅዎን ቦት ዝግጁ ነው፡"
       error: "እባክዎን እንደገና ይሞክሩ።"
+  notifications:
+    low_stock_alert: "ማስታወሻ! %{product_name} ከፍተኛ ነገር ነው። ለእርስዎ ብቻ %{count} ተረፍቷል።"
+  buttons:
+    restock: "እንደገና +10"
+  messages:
+    restock_success: "10 ክፍል በትክክል ተጨምሯል። አዲስ ድምር ነው %{total}።"
+  errors:
+    product_not_found: "ምርት አልተገኘም ወይም ለማሻሻል ፈቃድ የእርስዎ አይደለም።"

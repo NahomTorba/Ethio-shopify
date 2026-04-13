@@ -23,5 +23,24 @@ module Telegram
         ]
       }
     end
+
+    def self.low_stock_alert(product_id:)
+      {
+        inline_keyboard: [
+          [
+            { text: I18n.t("buttons.restock"), callback_data: "restock_#{product_id}" }
+          ]
+        ]
+      }
+    end
+
+    def self.language_button_label(language)
+      case language
+      when "am"
+        "አማርኛ"
+      else
+        "English"
+      end
+    end
   end
 end

@@ -30,7 +30,9 @@ module Telegram
       if start_command?(message)
         send_welcome(chat_id: chat_id_for(message), language: user.language)
       elsif createshop_command?(message)
-        start_createshop_flow(user: user, chat_id: chat_id_for(message))
+        send_create_shop_prompt(chat_id: chat_id_for(message), user: user)
+      elsif language_selection?(message)
+        update_language(user:, callback_query: message)
       else
         send_unknown_message(chat_id: chat_id_for(message), language: user.language)
       end
@@ -66,16 +68,6 @@ module Telegram
       message["data"].to_s.start_with?("set_lang_")
     end
 
-    def handle_callback(user:, callback_query:)
-      data = callback_query["data"]
-
-      if data&.start_with?("set_lang_")
-        update_language(user: user, callback_query: callback_query)
-      elsif data == "cmd_createshop"
-        start_createshop_flow(user: user, chat_id: callback_query.dig("message", "chat", "id"))
-      end
-    end
-
     def update_language(user:, callback_query:)
       language = callback_query["data"].split("_").last
       language = "en" unless %w[en am].include?(language)
@@ -83,72 +75,63 @@ module Telegram
       user.update!(language: language)
       message_sender.call(
         chat_id: callback_query.dig("message", "chat", "id"),
-        text: I18n.t("telegram.language_updated", locale: language)
+        text: I18n.t("telegram.language_updated", locale: language),
+        reply_markup: Telegram::KeyboardBuilder.main_menu(language:)
       )
     end
 
-    def start_createshop_flow(user:, chat_id:)
-      user.update!(bot_state: STATES[:AWAITING_SHOP_NAME])
+    def handle_callback(user:, callback_query:)
+      data = callback_query["data"].to_s
 
-      setup_url = "#{ENV.fetch('APP_URL', 'https://your-domain.com')}/setup-shop?user_id=#{user.id}"
+      case data
+      when /\Aset_lang_/
+        update_language(user:, callback_query:)
+      when "cmd_createshop"
+        send_create_shop_prompt(chat_id: chat_id_for(callback_query), user: user)
+      when /\Arestock_(\d+)\z/
+        restock_product(chat_id: chat_id_for(callback_query), user: user, product_id: Regexp.last_match(1))
+      else
+        send_unknown_message(chat_id: chat_id_for(callback_query), language: user.language)
+      end
+    end
+
+    def handle_conversation(user:, message:)
+      case user.bot_state
+      when STATES[:AWAITING_SHOP_NAME], STATES[:AWAITING_SHOP_USERNAME]
+        user.update!(bot_state: STATES[:NONE])
+        send_create_shop_prompt(chat_id: chat_id_for(message), user: user)
+      else
+        user.update!(bot_state: STATES[:NONE])
+        send_unknown_message(chat_id: chat_id_for(message), language: user.language)
+      end
+    end
+
+    def send_create_shop_prompt(chat_id:, user:)
+      app_url = "#{app_url_base}/setup-shop?user_id=#{user.id}"
 
       message_sender.call(
         chat_id: chat_id,
         text: I18n.t("telegram.createshop.start", locale: user.language),
-        reply_markup: Telegram::KeyboardBuilder.create_shop_button(
-          app_url: setup_url,
-          language: user.language
-        )
+        reply_markup: Telegram::KeyboardBuilder.create_shop_button(app_url:, language: user.language)
       )
     end
 
-    def handle_conversation(user:, message:)
-      chat_id = chat_id_for(message)
-      state = user.bot_state
+    def restock_product(chat_id:, user:, product_id:)
+      product = Product.joins(shop: :user).find_by(id: product_id, shops: { user_id: user.id })
 
-      case state
-      when STATES[:AWAITING_SHOP_NAME]
-        user.update!(temp_shop_name: message["text"], bot_state: STATES[:AWAITING_SHOP_USERNAME])
+      unless product
         message_sender.call(
           chat_id: chat_id,
-          text: I18n.t("telegram.createshop.ask_username", locale: user.language)
+          text: I18n.t("errors.product_not_found", locale: user.language)
         )
-
-      when STATES[:AWAITING_SHOP_USERNAME]
-        username = message["text"]&.gsub("@", "")&.gsub("_bot", "")&.strip
-        username = "#{username}_bot" unless username&.end_with?("_bot")
-
-        if Shop.find_by(username: username)
-          message_sender.call(
-            chat_id: chat_id,
-            text: I18n.t("telegram.createshop.username_taken", locale: user.language)
-          )
-        else
-          create_shop(user: user, username: username, chat_id: chat_id)
-        end
+        return
       end
-    end
 
-    def create_shop(user:, username:, chat_id:)
-      shop_name = user.temp_shop_name
-
-      shop = Shop.create!(
-        name: shop_name,
-        username: username,
-        user: user,
-        active: true,
-        welcome_message: "Hello! Welcome to #{shop_name}! Browse our products and place orders easily.",
-        web_app_button_url: "#{ENV.fetch('APP_URL', 'https://your-domain.com')}/api/v1/shop/#{username}"
-      )
-
+      product.restock!
       message_sender.call(
         chat_id: chat_id,
-        text: I18n.t("telegram.createshop.success", locale: user.language) + "\n\n" +
-          "Your shop link: t.me/#{username}?start=welcome\n\n" +
-          "Note: Create a bot at @BotFather with username '#{username}' and set webhook to your server to activate the shop."
+        text: I18n.t("messages.restock_success", locale: user.language, total: product.stock_quantity)
       )
-
-      user.update!(bot_state: STATES[:NONE], temp_shop_name: nil)
     end
 
     def send_welcome(chat_id:, language:)
@@ -173,6 +156,10 @@ module Telegram
 
     def chat_id_for(message)
       message.dig("chat", "id") || message.dig("message", "chat", "id")
+    end
+
+    def app_url_base
+      ENV.fetch("APP_URL", "https://your-domain.com")
     end
   end
 end
