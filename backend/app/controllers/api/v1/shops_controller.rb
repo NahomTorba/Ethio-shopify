@@ -4,7 +4,7 @@ module Api
       before_action :set_shop, only: %i[show update]
 
       def show
-        render json: { shop: @shop, products: @shop.products.order(created_at: :desc) }
+        render json: { shop: @shop, products: @shop.products.visible_to_buyers.for_seller_inventory }
       end
 
       def update

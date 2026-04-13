@@ -17,7 +17,7 @@ class StockAlertService
   attr_reader :product, :seller
 
   def eligible_for_alert?
-    seller.telegram_id.present? && !recent_alert_sent?
+    seller.present? && seller.telegram_id.present? && !recent_alert_sent?
   end
 
   def recent_alert_sent?

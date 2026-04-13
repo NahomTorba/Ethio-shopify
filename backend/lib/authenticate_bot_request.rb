@@ -6,6 +6,7 @@ class AuthenticateBotRequest
 
   EXCLUDED_PATHS = [
     %r{\A/api/v1/shops/setup},
+    %r{\A/webhooks/telegram},
     %r{\A/webhooks/shop_bot},
     %r{\Alist-products},
     %r{\A/api/v1/products},

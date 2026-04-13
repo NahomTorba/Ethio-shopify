@@ -15,7 +15,7 @@ Rails.application.routes.draw do
     shop_id = request.params[:shop_id]
     Rails.logger.info "=== LIST PRODUCTS API: shop_id=#{shop_id}, full_path=#{request.path} ==="
     
-    products = Product.where(shop_id: shop_id).order(created_at: :desc)
+    products = Product.visible_to_buyers.where(shop_id: shop_id).for_seller_inventory
     Rails.logger.info "=== Found #{products.count} products ==="
     
     json = { products: products.map { |p| { id: p.id, name: p.name.to_s, description: p.description.to_s, price: p.price.to_f, stock_quantity: p.stock_quantity.to_i } } }.to_json
@@ -70,10 +70,81 @@ Rails.application.routes.draw do
                 </form>
                 <div id="product-result" class="mt-3 text-center"></div>
               </div>
+
+              <div class="bg-white p-4 rounded-lg shadow">
+                <div class="flex items-center justify-between mb-3">
+                  <h2 class="font-semibold text-lg">My Products</h2>
+                  <span class="text-sm text-gray-500">Hidden items stay here</span>
+                </div>
+                <div id="seller-products" class="space-y-3">
+                  <p class="text-gray-500">Loading products...</p>
+                </div>
+              </div>
             </div>
           </div>
           
           <script>
+            const sellerProductsContainer = document.getElementById('seller-products');
+
+            const loadSellerProducts = async () => {
+              try {
+                const response = await fetch('/shop/#{shop.username}/owner-products');
+                const data = await response.json();
+
+                if (!data.products || data.products.length === 0) {
+                  sellerProductsContainer.innerHTML = '<p class="text-gray-500">No products yet.</p>';
+                  return;
+                }
+
+                sellerProductsContainer.innerHTML = data.products.map((product) => {
+                  const badges = [];
+                  if (product.hidden) badges.push('<span class="px-2 py-1 text-xs font-medium rounded-full bg-amber-100 text-amber-800">Hidden</span>');
+                  if (product.out_of_stock) badges.push('<span class="px-2 py-1 text-xs font-medium rounded-full bg-rose-100 text-rose-700">Out of stock</span>');
+                  if (!product.hidden && !product.out_of_stock) badges.push('<span class="px-2 py-1 text-xs font-medium rounded-full bg-emerald-100 text-emerald-700">Live</span>');
+
+                  return `
+                    <div class="border border-slate-200 rounded-xl p-3">
+                      <div class="flex items-start justify-between gap-3">
+                        <div>
+                          <div class="flex flex-wrap gap-2 mb-2">${badges.join('')}</div>
+                          <h3 class="font-semibold text-slate-900">${product.name}</h3>
+                          <p class="text-sm text-slate-500">${product.description || 'No description'}</p>
+                        </div>
+                        <div class="text-right text-sm">
+                          <div class="font-semibold text-indigo-600">${product.price} ETB</div>
+                          <div class="text-slate-500">Stock: ${product.stock_quantity}</div>
+                        </div>
+                      </div>
+                      <div class="flex gap-2 mt-3">
+                        <button data-product-id="${product.id}" data-next-active="${!product.active}" class="toggle-visibility flex-1 rounded-lg px-3 py-2 text-sm font-medium ${product.active ? 'bg-slate-900 text-white' : 'bg-emerald-600 text-white'}">
+                          ${product.active ? 'Hide from buyers' : 'Publish product'}
+                        </button>
+                        <button data-product-id="${product.id}" class="mark-out-of-stock flex-1 rounded-lg px-3 py-2 text-sm font-medium bg-rose-50 text-rose-700 border border-rose-200 ${product.out_of_stock ? 'opacity-50 cursor-not-allowed' : ''}" ${product.out_of_stock ? 'disabled' : ''}>
+                          Mark out of stock
+                        </button>
+                      </div>
+                    </div>
+                  `;
+                }).join('');
+              } catch (error) {
+                sellerProductsContainer.innerHTML = '<p class="text-red-600">Could not load products.</p>';
+              }
+            };
+
+            const updateSellerProduct = async (productId, payload) => {
+              const response = await fetch(`/shop/#{shop.username}/products/${productId}/visibility`, {
+                method: 'PATCH',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ product: payload })
+              });
+
+              if (!response.ok) {
+                throw new Error('Update failed');
+              }
+
+              return response.json();
+            };
+
             document.getElementById('add-product-form').addEventListener('submit', async (e) => {
               e.preventDefault();
               const name = document.getElementById('product_name').value;
@@ -101,6 +172,7 @@ Rails.application.routes.draw do
                 if (response.ok) {
                   document.getElementById('product-result').innerHTML = '<p class="text-green-600">Added!</p>';
                   document.getElementById('add-product-form').reset();
+                  loadSellerProducts();
                 } else {
                   document.getElementById('product-result').innerHTML = '<p class="text-red-600">Failed</p>';
                 }
@@ -108,6 +180,30 @@ Rails.application.routes.draw do
                 document.getElementById('product-result').innerHTML = '<p class="text-red-600">Error</p>';
               }
             });
+
+            sellerProductsContainer.addEventListener('click', async (event) => {
+              const toggleButton = event.target.closest('.toggle-visibility');
+              const outOfStockButton = event.target.closest('.mark-out-of-stock');
+
+              try {
+                if (toggleButton) {
+                  const productId = toggleButton.dataset.productId;
+                  const nextActive = toggleButton.dataset.nextActive === 'true';
+                  await updateSellerProduct(productId, { active: nextActive });
+                  await loadSellerProducts();
+                }
+
+                if (outOfStockButton && !outOfStockButton.disabled) {
+                  const productId = outOfStockButton.dataset.productId;
+                  await updateSellerProduct(productId, { stock_quantity: 0 });
+                  await loadSellerProducts();
+                }
+              } catch (error) {
+                document.getElementById('product-result').innerHTML = '<p class="text-red-600">Could not update product.</p>';
+              }
+            });
+
+            loadSellerProducts();
           </script>
         </body>
         </html>
@@ -255,6 +351,8 @@ Rails.application.routes.draw do
 
   # 4. Public API for shop setup
   post "/api/v1/shops/setup", to: "public_shop_setup#create"
+  get "/shop/:username/owner-products", to: "public_shop_products#index"
+  patch "/shop/:username/products/:id/visibility", to: "public_shop_products#update"
 
   # 5. API for the React Frontend
   namespace :api do

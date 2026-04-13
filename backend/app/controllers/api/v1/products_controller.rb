@@ -21,16 +21,6 @@ module Api
         render json: { product: @product }
       end
 
-      def create
-        product = Product.new(product_params)
-
-        if product.save
-          render json: { product: product }, status: :created
-        else
-          render json: { errors: product.errors.full_messages }, status: :unprocessable_entity
-        end
-      end
-
       def update
         if @product.update(product_params)
           render json: { product: @product }

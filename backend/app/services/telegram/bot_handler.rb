@@ -47,9 +47,12 @@ module Telegram
     end
 
     def find_or_initialize_user(message)
+      ensure_devise_mapping!
       telegram_id = telegram_user_id_for(message)
       User.find_or_create_by!(telegram_id: telegram_id) do |user|
         user.email = "telegram-#{telegram_id}@example.invalid"
+        user.uid = user.email
+        user.provider = "email"
         user.password = SecureRandom.hex(16)
         user.password_confirmation = user.password
         user.name = message.dig("from", "first_name").presence || "Telegram Seller"
@@ -160,6 +163,10 @@ module Telegram
 
     def app_url_base
       ENV.fetch("APP_URL", "https://your-domain.com")
+    end
+
+    def ensure_devise_mapping!
+      Rails.application.reload_routes! if defined?(Devise) && Devise.mappings.empty?
     end
   end
 end

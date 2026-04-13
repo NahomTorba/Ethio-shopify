@@ -6,12 +6,18 @@ module Telegram
       if shop&.telegram_bot_token
         @bot_token = shop.telegram_bot_token
       else
-        @bot_token = ENV.fetch("TELEGRAM_BOT_TOKEN") { raise "TELEGRAM_BOT_TOKEN not set" }
+        @bot_token = ENV["TELEGRAM_BOT_TOKEN"]
       end
-      Rails.logger.info("TelegramService initialized with token: #{@bot_token[0..10]}...")
+      if @bot_token.present?
+        Rails.logger.info("TelegramService initialized with token: #{@bot_token[0..10]}...")
+      else
+        Rails.logger.warn("TelegramService initialized without a bot token; messages will be skipped")
+      end
     end
 
     def send_message(chat_id:, text:, reply_markup: nil)
+      return false if @bot_token.blank?
+
       url = "https://api.telegram.org/bot#{@bot_token}/sendMessage"
       Rails.logger.info("Sending message to chat_id: #{chat_id}, text: #{text[0..50]}...")
 
