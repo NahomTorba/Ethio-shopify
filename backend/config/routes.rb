@@ -1,5 +1,5 @@
 Rails.application.routes.draw do
-  get "/up", to: proc { [200, { "Content-Type" => "application/json" }, ['{"status":"ok"}']] }
+  get "/up", to: proc { [ 200, { "Content-Type" => "application/json" }, [ '{"status":"ok"}' ] ] }
 
   mount_devise_token_auth_for "User",
                               at: "auth",
@@ -8,10 +8,10 @@ Rails.application.routes.draw do
                                 registrations: "auth/registrations"
                               }
 
-  scope module: :web do
-    get "/shop/:username", to: "app_links#shop"
-    get "/setup-shop", to: "app_links#setup_shop"
-  end
+  # Serve frontend
+  get "/setup-shop", to: "frontend#serve"
+  get "/shop(*path)", to: "frontend#serve"
+  get "(*path)", to: "frontend#serve"
 
   namespace :api do
     namespace :v1 do

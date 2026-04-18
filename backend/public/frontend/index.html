@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Create Your Shop</title>
+  <style>
+    body { font-family: Arial, sans-serif; padding: 20px; max-width: 400px; margin: 0 auto; }
+    input { width: 100%; padding: 10px; margin: 5px 0 15px 0; box-sizing: border-box; }
+    button { padding: 10px 20px; background: #007bff; color: white; border: none; cursor: pointer; }
+    button:disabled { background: #ccc; }
+  </style>
+</head>
+<body>
+  <h1>Create Your Shop</h1>
+  <form id="shopForm">
+    <label>Shop Name</label>
+    <input type="text" id="shopName" required>
+    
+    <label>Username (for bot)</label>
+    <input type="text" id="shopUsername" placeholder="my_shop_bot" required>
+    
+    <button type="submit" id="submitBtn">Create Shop</button>
+  </form>
+  
+  <script>
+    document.getElementById('shopForm').addEventListener('submit', async function(e) {
+      e.preventDefault();
+      var btn = document.getElementById('submitBtn');
+      btn.disabled = true;
+      btn.textContent = 'Creating...';
+      
+      var userId = new URLSearchParams(window.location.search).get('user_id');
+      var shopName = document.getElementById('shopName').value;
+      var shopUsername = document.getElementById('shopUsername').value;
+      
+      try {
+        var response = await fetch('/api/v1/shops/setup', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            shop: { name: shopName, username: shopUsername },
+            user_id: userId
+          })
+        });
+        
+        if (response.ok) {
+          alert('Shop created successfully!');
+        } else {
+          alert('Error creating shop');
+        }
+      } catch (error) {
+        alert('Error: ' + error.message);
+      }
+      
+      btn.disabled = false;
+      btn.textContent = 'Create Shop';
+    });
+  </script>
+</body>
+</html>

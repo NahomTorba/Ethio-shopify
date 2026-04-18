@@ -4,7 +4,7 @@ module FrontendUrlBuilder
   module_function
 
   def base_url
-    ENV.fetch("FRONTEND_URL", "http://localhost:3001").chomp("/")
+    ENV.fetch("APP_URL", "http://localhost:3000").chomp("/")
   end
 
   def shop(username:, mode: nil)
