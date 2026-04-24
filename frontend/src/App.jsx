@@ -1,4 +1,5 @@
 import { useEffect } from "react";
+import UsersPage from "./pages/usersPage";
 
 function App() {
   useEffect(() => {
@@ -11,7 +12,7 @@ function App() {
     }
   }, []);
 
-  return <h1>Users App</h1>;
+  return <UsersPage />;
 }
 
 export default App;
