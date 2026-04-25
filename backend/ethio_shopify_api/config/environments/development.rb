@@ -72,6 +72,7 @@ Rails.application.configure do
   # config.generators.apply_rubocop_autocorrect_after_generate!
 
   # Allow ngrok hosts
+  config.hosts << "ethio-shopify-chi.vercel.app"
   config.hosts << /.*\.ngrok-free\.dev/
 
 end
