@@ -1,5 +1,6 @@
 import { useEffect } from "react";
 import UsersPage from "./pages/usersPage";
+import CreateBotPage from "./pages/createBotPage";
 
 function App() {
   useEffect(() => {
@@ -12,7 +13,7 @@ function App() {
     }
   }, []);
 
-  return <UsersPage />;
+  return <CreateBotPage />
 }
 
 export default App;
