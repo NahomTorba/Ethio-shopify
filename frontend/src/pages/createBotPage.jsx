@@ -33,7 +33,7 @@ export default function CreateBotPage() {
       <button onClick={handleCreate} disabled={loading || !name.trim() || !token.trim()}>
         {loading ? "Creating..." : "Create Bot"}
       </button>
-      {error && <p style={{ color: "red" }}>{error}</p>}
+      {error && <p style={{ color: "red" }}>{typeof error === 'string' ? error : JSON.stringify(error)}</p>}
       {shop && <p style={{ color: "green" }}>Bot created! Token saved.</p>}
     </div>
   );
