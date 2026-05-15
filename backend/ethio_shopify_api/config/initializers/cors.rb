@@ -7,7 +7,7 @@
 
 Rails.application.config.middleware.insert_before 0, Rack::Cors do
   allow do
-    origins "https://ethio-shopify-chi.vercel.app", "http://localhost:5173"
+    origins "https://ethio-shopify-chi.vercel.app", "http://localhost:5173",  "https://web.telegram.org", "*"
 
     resource "*",
       headers: :any,
